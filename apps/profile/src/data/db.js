@@ -53,12 +53,14 @@ export const db = {
       const stored = localStorage.getItem(key);
       if (stored) return JSON.parse(stored);
 
-      // Seed data for new user
+      // Seed data for new user with personalized avatar
+      const name = user.name || user.email.split("@")[0];
       const newProfile = {
         ...initialProfile,
         id: Date.now(),
-        name: user.name || user.email.split("@")[0],
+        name: name,
         email: user.email,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=150`,
         // Keep the demo stats/activity
       };
 
