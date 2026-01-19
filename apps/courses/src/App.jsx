@@ -436,13 +436,12 @@ const CourseDashboard = ({ setSelectedCourse }) => {
           >
             <div className="h-48 bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
               <img
-                src={`https://source.unsplash.com/random/800x600/?coding,${course.category}`}
+                src={`https://picsum.photos/seed/${course.id}/800/600`}
                 alt={course.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src =
-                    "https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=800&q=80";
+                  e.target.src = "https://picsum.photos/800/600";
                 }}
               />
               <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-gray-900 dark:text-white shadow-sm">
