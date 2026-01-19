@@ -14,9 +14,11 @@ const API_URL = {
   profile: process.env.PROFILE_URL || "http://localhost:3002",
 };
 
+const IS_PROD = process.env.NODE_ENV === "production";
+
 export default {
   entry: "./src/index.js",
-  mode: "development",
+  mode: IS_PROD ? "production" : "development",
   devServer: {
     port: 3000,
     historyApiFallback: true,

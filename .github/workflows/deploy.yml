@@ -1,0 +1,71 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build Apps
+        env:
+          NODE_ENV: production
+          # For GitHub Pages, the URLs are subdirectory based on the repo name
+          COURSES_URL: /MFEdemo/courses
+          PROFILE_URL: /MFEdemo/profile
+        run: |
+          # Build shell
+          cd apps/shell
+          pnpm build
+          cd ../..
+
+          # Build courses
+          cd apps/courses
+          pnpm build
+          cd ../..
+
+          # Build profile
+          cd apps/profile
+          pnpm build
+          cd ../..
+
+      - name: Prepare Deployment Folder
+        run: |
+          mkdir deploy
+          # Copy shell build to root of deploy
+          cp -r apps/shell/dist/* deploy/
+          
+          # Create subdirectories for micro-apps
+          mkdir -p deploy/courses
+          mkdir -p deploy/profile
+          
+          # Copy micro-apps
+          cp -r apps/courses/dist/* deploy/courses/
+          cp -r apps/profile/dist/* deploy/profile/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
