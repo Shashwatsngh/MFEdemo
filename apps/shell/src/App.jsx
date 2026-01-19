@@ -37,8 +37,7 @@ const ErrorFallback = ({ name }) => (
       {name} Failed to Load
     </h3>
     <p className="text-gray-500 max-w-sm mx-auto">
-      There was an issue loading this micro-frontend. Please ensure the service
-      is running.
+      There was an issue loading this micro-frontend. Please ensure the service is running.
     </p>
     <button
       onClick={() => window.location.reload()}
@@ -52,51 +51,57 @@ const ErrorFallback = ({ name }) => (
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-
     this.state = { hasError: false };
   }
-  static getDerivedStateFromError() {
+
+  static getDerivedStateFromError(error) {
     return { hasError: true };
   }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("MicroFrontend Error:", error, errorInfo);
+  }
+
   render() {
     if (this.state.hasError) {
       return <ErrorFallback name={this.props.name} />;
     }
+
     return this.props.children;
   }
 }
 
 const Header = ({ activeTab, setActiveTab }) => (
-  <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+  <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between h-16">
+      <div className="flex justify-between h-16 items-center">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab("courses")}>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
               M
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-              MagicEd
+              MicroLearning
             </span>
           </div>
-
-          <nav className="hidden md:flex space-x-1">
+          
+          <nav className="hidden md:flex items-center gap-1">
             <button
               onClick={() => setActiveTab("courses")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === "courses"
                   ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  : "text-gray-600 hover:bg-gray-50"
               }`}
             >
               Courses
             </button>
             <button
               onClick={() => setActiveTab("profile")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === "profile"
                   ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  : "text-gray-600 hover:bg-gray-50"
               }`}
             >
               My Profile
@@ -107,30 +112,29 @@ const Header = ({ activeTab, setActiveTab }) => (
         <div className="flex items-center gap-4">
           <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors relative">
             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </button>
-          <div
-            onClick={() => auth.logout()}
-            className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-100 ring-2 ring-gray-100 cursor-pointer"
-            title="Logout"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
+          
+          <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+            <div 
+              onClick={() => setActiveTab("profile")}
+              className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-100 ring-2 ring-gray-100 cursor-pointer hover:ring-blue-300 transition-all shadow-sm"
+              title="View Profile"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <button
+              onClick={() => auth.logout()}
+              className="text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-full transition-colors border border-red-100"
+            >
+              Log Out
+            </button>
           </div>
         </div>
       </div>
@@ -162,7 +166,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 selection:bg-blue-100 selection:text-blue-900">
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
-
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Suspense fallback={<LoadingSpinner />}>
           <div className="transition-all duration-300 ease-in-out">
@@ -173,7 +177,8 @@ const App = () => {
             )}
             {activeTab === "profile" && (
               <ErrorBoundary name="Profile App">
-                <ProfileApp />
+                {/* Properly passing the user prop to the Profile MFE */}
+                <ProfileApp user={user} />
               </ErrorBoundary>
             )}
           </div>
@@ -183,15 +188,14 @@ const App = () => {
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 grayscale opacity-70 hover:opacity-100 transition-opacity">
-              <div className="w-6 h-6 bg-gray-400 rounded-md flex items-center justify-center text-white font-bold text-xs">
-                M
-              </div>
-              <span className="font-semibold text-gray-500">MagicEd</span>
+            <div className="text-sm text-gray-500">
+              © 2024 MicroLearning Platform. All rights reserved.
             </div>
-            <p className="text-sm text-gray-500">
-              © 2024 Magic EdTech Dashboard. All rights reserved.
-            </p>
+            <div className="flex gap-6 text-sm text-gray-500">
+              <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a>
+              <a href="#" className="hover:text-blue-600 transition-colors">Support</a>
+            </div>
           </div>
         </div>
       </footer>

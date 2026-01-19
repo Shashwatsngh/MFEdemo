@@ -43,29 +43,36 @@ const initialProfile = {
   ],
 };
 
-const DB_KEY = "mfe_profile";
-
-// Seed data if empty
-try {
-  if (!localStorage.getItem(DB_KEY)) {
-    localStorage.setItem(DB_KEY, JSON.stringify(initialProfile));
-  }
-} catch (e) {
-  console.warn("localStorage not available");
-}
+const DB_KEY_PREFIX = "mfe_profile_";
 
 export const db = {
-  getProfile: () => {
+  getProfile: (user) => {
+    if (!user) return null;
+    const key = DB_KEY_PREFIX + user.email;
     try {
-      return JSON.parse(localStorage.getItem(DB_KEY) || "null");
+      const stored = localStorage.getItem(key);
+      if (stored) return JSON.parse(stored);
+
+      // Seed data for new user
+      const newProfile = {
+        ...initialProfile,
+        id: Date.now(),
+        name: user.name || user.email.split("@")[0],
+        email: user.email,
+        // Keep the demo stats/activity
+      };
+
+      localStorage.setItem(key, JSON.stringify(newProfile));
+      return newProfile;
     } catch {
       return null;
     }
   },
-  updateProfile: (updates) => {
-    const current = db.getProfile() || initialProfile;
+  updateProfile: (user, updates) => {
+    if (!user) return null;
+    const current = db.getProfile(user);
     const updated = { ...current, ...updates };
-    localStorage.setItem(DB_KEY, JSON.stringify(updated));
+    localStorage.setItem(DB_KEY_PREFIX + user.email, JSON.stringify(updated));
     return updated;
   },
 };
