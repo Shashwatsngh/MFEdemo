@@ -1,6 +1,13 @@
 import React, { useState } from "react";
-import { Provider, useSelector } from "react-redux";
-import { store, selectCourses } from "./store";
+import { Provider, useSelector, useDispatch } from "react-redux";
+import {
+  store,
+  selectCourses,
+  addCourse,
+  deleteCourse,
+  setSearch,
+  setFilter,
+} from "./store";
 import "./index.css";
 
 const StarRating = ({ rating }) => (
@@ -21,9 +28,119 @@ const StarRating = ({ rating }) => (
   </div>
 );
 
-const CourseCard = ({ course }) => {
+const AddCourseModal = ({ isOpen, onClose }) => {
+  const dispatch = useDispatch();
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    instructor: "",
+    category: "Frontend",
+    level: "Beginner",
+  });
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(
+      addCourse({
+        ...formData,
+        rating: 0,
+        students: 0,
+        duration: "0 hours",
+        image:
+          "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=250&fit=crop",
+      }),
+    );
+    onClose();
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300 group overflow-hidden flex flex-col h-full">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-500 bg-opacity-75 flex items-center justify-center">
+      <div className="bg-white rounded-lg p-8 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-4">Add New Course</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Title
+            </label>
+            <input
+              required
+              type="text"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <textarea
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Instructor
+            </label>
+            <input
+              required
+              type="text"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+              value={formData.instructor}
+              onChange={(e) =>
+                setFormData({ ...formData, instructor: e.target.value })
+              }
+            />
+          </div>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md"
+            >
+              Create
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const CourseCard = ({ course }) => {
+  const dispatch = useDispatch();
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300 group overflow-hidden flex flex-col h-full relative">
+      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirm("Delete this course?"))
+              dispatch(deleteCourse(course.id));
+          }}
+          className="bg-red-500 text-white p-2 text-xs rounded-full hover:bg-red-600 shadow-lg"
+          title="Delete Course"
+        >
+          Delete
+        </button>
+      </div>
+
       <div className="relative h-48 overflow-hidden">
         <img
           src={course.image}
@@ -112,16 +229,25 @@ const CourseCard = ({ course }) => {
 };
 
 const CourseList = () => {
-  const courses = useSelector(selectCourses);
-  const [filter, setFilter] = useState("All");
+  const { items: courses, filter, search } = useSelector(selectCourses);
+  const dispatch = useDispatch();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const filteredCourses =
-    filter === "All" ? courses : courses.filter((c) => c.category === filter);
+  const filteredCourses = courses.filter((c) => {
+    const matchCategory = filter === "All" || c.category === filter;
+    const matchSearch = c.title.toLowerCase().includes(search.toLowerCase());
+    return matchCategory && matchSearch;
+  });
 
   const categories = ["All", ...new Set(courses.map((c) => c.category))];
 
   return (
     <div className="space-y-8">
+      <AddCourseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
@@ -133,12 +259,32 @@ const CourseList = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Course
+          </button>
+
+          <div className="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm overflow-x-auto">
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setFilter(cat)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                onClick={() => dispatch(setFilter(cat))}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
                   filter === cat
                     ? "bg-blue-600 text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-50"
@@ -149,6 +295,30 @@ const CourseList = () => {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search courses..."
+          className="w-full border border-gray-200 rounded-xl py-3 px-4 pl-12 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={search}
+          onChange={(e) => dispatch(setSearch(e.target.value))}
+        />
+        <svg
+          className="w-5 h-5 text-gray-400 absolute left-4 top-3.5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">

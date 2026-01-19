@@ -1,5 +1,8 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
 import "./index.css";
+import { auth } from "./utils/auth";
+import { LoginPage } from "./components/LoginPage";
+import { SignupPage } from "./components/SignupPage";
 
 const CoursesApp = lazy(() => import("courses/CoursesApp"));
 const ProfileApp = lazy(() => import("profile/ProfileApp"));
@@ -34,7 +37,8 @@ const ErrorFallback = ({ name }) => (
       {name} Failed to Load
     </h3>
     <p className="text-gray-500 max-w-sm mx-auto">
-      There was an issue loading this micro-frontend. Please ensure the service is running.
+      There was an issue loading this micro-frontend. Please ensure the service
+      is running.
     </p>
     <button
       onClick={() => window.location.reload()}
@@ -48,6 +52,7 @@ const ErrorFallback = ({ name }) => (
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = { hasError: false };
   }
   static getDerivedStateFromError() {
@@ -102,14 +107,28 @@ const Header = ({ activeTab, setActiveTab }) => (
         <div className="flex items-center gap-4">
           <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors relative">
             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
             </svg>
           </button>
-          <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-100 ring-2 ring-gray-100 cursor-pointer">
-            <img 
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" 
-              alt="Profile" 
+          <div
+            onClick={() => auth.logout()}
+            className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-100 ring-2 ring-gray-100 cursor-pointer"
+            title="Logout"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+              alt="Profile"
               className="w-full h-full object-cover"
             />
           </div>
@@ -121,11 +140,29 @@ const Header = ({ activeTab, setActiveTab }) => (
 
 const App = () => {
   const [activeTab, setActiveTab] = useState("courses");
+  const [user, setUser] = useState(auth.getCurrentUser());
+  const [authMode, setAuthMode] = useState("login");
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setUser(auth.getCurrentUser());
+    };
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
+
+  if (!user) {
+    return authMode === "login" ? (
+      <LoginPage onSwitchToSignup={() => setAuthMode("signup")} />
+    ) : (
+      <SignupPage onSwitchToLogin={() => setAuthMode("login")} />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 selection:bg-blue-100 selection:text-blue-900">
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Suspense fallback={<LoadingSpinner />}>
           <div className="transition-all duration-300 ease-in-out">
@@ -147,7 +184,7 @@ const App = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2 grayscale opacity-70 hover:opacity-100 transition-opacity">
-               <div className="w-6 h-6 bg-gray-400 rounded-md flex items-center justify-center text-white font-bold text-xs">
+              <div className="w-6 h-6 bg-gray-400 rounded-md flex items-center justify-center text-white font-bold text-xs">
                 M
               </div>
               <span className="font-semibold text-gray-500">MagicEd</span>
