@@ -1,0 +1,15 @@
+{
+  "name": "edtech-microfrontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "dev:courses": "pnpm --filter courses dev",
+    "dev:profile": "pnpm --filter profile dev",
+    "dev:shell": "pnpm --filter shell dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
