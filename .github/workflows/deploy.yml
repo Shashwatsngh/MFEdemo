@@ -14,16 +14,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "pnpm"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Install Dependencies
         run: pnpm install
@@ -55,11 +55,11 @@ jobs:
           mkdir deploy
           # Copy shell build to root of deploy
           cp -r apps/shell/dist/* deploy/
-          
+
           # Create subdirectories for micro-apps
           mkdir -p deploy/courses
           mkdir -p deploy/profile
-          
+
           # Copy micro-apps
           cp -r apps/courses/dist/* deploy/courses/
           cp -r apps/profile/dist/* deploy/profile/
